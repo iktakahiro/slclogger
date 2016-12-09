@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/iktakahiro/slclogger.svg?branch=master)](https://travis-ci.org/iktakahiro/slclogger)
 
-Simple and Human Friendly Slack Client for Logging Written in Go Programming Language
+**Simple and Human Friendly Slack Client for Logging Written in Go Programming Language**
 
 ## Install
 
@@ -11,7 +11,6 @@ go get "github.com/iktakahiro/slclogger"
 ```
 
 The requirement is the [Go lang](https://golang.org/dl/) 1.6+
-
 
 ## How to Use
 
@@ -109,3 +108,7 @@ if err := logger.Info("Info Message"); err != nil {
     }
 }
 ```
+
+## Documents
+
+- [slclogger \- GoDoc](https://godoc.org/github.com/iktakahiro/slclogger)
