@@ -1,12 +1,17 @@
 # slclogger
 
-Simple and Human Friendly Slack Client for Logging
+[![Build Status](https://travis-ci.org/iktakahiro/slclogger.svg?branch=master)](https://travis-ci.org/iktakahiro/slclogger)
+
+Simple and Human Friendly Slack Client for Logging Written in Go Programming Language
 
 ## Install
 
 ```bash
 go get "github.com/iktakahiro/slclogger"
 ```
+
+The requirement is the [Go lang](https://golang.org/dl/) 1.6+
+
 
 ## How to Use
 
