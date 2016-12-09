@@ -1,4 +1,4 @@
-# slclogger
+# SlcLogger
 
 [![Build Status](https://travis-ci.org/iktakahiro/slclogger.svg?branch=master)](https://travis-ci.org/iktakahiro/slclogger)
 
