@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/asaskevich/govalidator"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/asaskevich/govalidator"
 )
 
 type logLevel int
@@ -31,7 +32,7 @@ func (s *SlcErr) Error() string {
 
 // SlcLogger is the structure detailing logger.
 type SlcLogger struct {
-	WebHookURL   string
+	WebHookURL string
 	SlcLoggerParams
 	LogLevel     logLevel
 	Channel      string
@@ -76,7 +77,7 @@ func validateParams(params *SlcLoggerParams) error {
 // NewSlcLogger returns a new SLcLogger.
 func NewSlcLogger(params *SlcLoggerParams) (*SlcLogger, error) {
 
-	if err := validateParams(params);err != nil {
+	if err := validateParams(params); err != nil {
 		return nil, err
 	}
 
@@ -169,9 +170,9 @@ func (s *SlcLogger) sendNotification(logLevel logLevel, color, message string, t
 
 const (
 	ColorDebug string = "#03A9F4"
-	ColorInfo string = "good"
-	ColorWarn string = "warning"
-	ColorErr string = "danger"
+	ColorInfo  string = "good"
+	ColorWarn  string = "warning"
+	ColorErr   string = "danger"
 )
 
 // Debug is a wrapper function of sendNotification function that implicitly sets the logLevel and color.

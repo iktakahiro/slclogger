@@ -1,12 +1,12 @@
 package slclogger
 
 import (
+	"encoding/json"
 	"testing"
 
-	"encoding/json"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/suite"
 )
 
 type SlcLoggerTestSuite struct {
@@ -115,11 +115,11 @@ func (suite *SlcLoggerTestSuite) TestBuildPayload() {
 	assert.Equal(suite.T(), expected, actual)
 }
 
-type MyMockedObject struct{
+type MyMockedObject struct {
 	mock.Mock
 }
 
-func (m *MyMockedObject) DummySendNotification() (error) {
+func (m *MyMockedObject) DummySendNotification() error {
 	return nil
 }
 
@@ -142,8 +142,6 @@ func (suite *SlcLoggerTestSuite) TestInfo() {
 
 	// err := logger.Info("message", "title")
 }
-
-
 
 func TestModelRecipientTestSuite(t *testing.T) {
 	suite.Run(t, new(SlcLoggerTestSuite))
