@@ -101,12 +101,11 @@ func (suite *SlcLoggerTestSuite) TestBuildPayload() {
 		WebHookURL:   "https://hooks.slack.com/services/T",
 	})
 
-	a := &attachment{text: "body", title: "title", color: "good"}
+	a := &attachment{Text: "body", Title: "title", Color: "good"}
 	attachments := []attachment{*a}
 
 	expected, err := json.Marshal(payload{
-
-		attachments: attachments,
+		Attachments: attachments,
 	})
 
 	actual, _ := logger.buildPayload("good", "body", []string{"title"})

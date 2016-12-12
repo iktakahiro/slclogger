@@ -36,7 +36,7 @@ func main() {
 	})
 
 	if err := something(); err != nil {
-		logger.Err(err.Error(), "Error Notification")
+		logger.Err(err, "Error Notification")
 	}
 }
 ```
