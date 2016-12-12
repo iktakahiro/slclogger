@@ -111,17 +111,17 @@ func (s *SlcLogger) SetLogLevel(level logLevel) {
 }
 
 type payload struct {
-	channel     string       `json:"channel"`
-	userName    string       `json:"username"`
-	iconURL     string       `json:"iconUrl"`
-	attachments []attachment `json:"attachments"`
+	Channel     string       `json:"channel"`
+	UserName    string       `json:"username"`
+	IconURL     string       `json:"icon_url"`
+	Attachments []attachment `json:"attachments"`
 }
 
 type attachment struct {
-	title     string `json:"title"`
-	titleLink string `json:"titleLink"`
-	text      string `json:"text"`
-	color     string `json:"color"`
+	Title     string `json:"title"`
+	TitleLink string `json:"title_link"`
+	Text      string `json:"text"`
+	Color     string `json:"color"`
 }
 
 // buildPayload returns an encoded JSON Object to post Slack API.
@@ -134,25 +134,34 @@ func (s *SlcLogger) buildPayload(color, message string, titleParam []string) ([]
 		title = titleParam[0]
 	}
 
-	a := &attachment{text: message, title: title, color: color}
+	a := &attachment{Text: message, Title: title, Color: color}
 	attachments := []attachment{*a}
 
 	return json.Marshal(payload{
-		channel:     s.Channel,
-		userName:    s.UserName,
-		iconURL:     s.IconURL,
-		attachments: attachments,
+		Channel:     s.Channel,
+		UserName:    s.UserName,
+		IconURL:     s.IconURL,
+		Attachments: attachments,
 	})
 }
 
 // sendNotification posts a message to WebHookURL.
-func (s *SlcLogger) sendNotification(logLevel logLevel, color, message string, titleParam []string) error {
+func (s *SlcLogger) sendNotification(logLevel logLevel, color string, message interface{}, titleParam []string) error {
+
+	var text string
+	if t, ok := message.(error); ok {
+		text = t.Error()
+	} else if t, ok := message.(string); ok {
+		text = t
+	} else {
+		return &SlcErr{errors.New("the type of message parameter shoud be string or errror"), 0}
+	}
 
 	if logLevel < s.LogLevel {
 		return nil
 	}
 
-	payload, err := s.buildPayload(color, message, titleParam)
+	payload, err := s.buildPayload(color, text, titleParam)
 	if err != nil {
 		return &SlcErr{err, 0}
 	}
@@ -178,21 +187,21 @@ const (
 )
 
 // Debug is a wrapper function of sendNotification function that implicitly sets the logLevel and color.
-func (s *SlcLogger) Debug(message string, title ...string) error {
+func (s *SlcLogger) Debug(message interface{}, title ...string) error {
 	return s.sendNotification(LevelDebug, colorDebug, message, title)
 }
 
 // Info is a wrapper function of sendNotification function that implicitly sets the logLevel and color.
-func (s *SlcLogger) Info(message string, title ...string) error {
+func (s *SlcLogger) Info(message interface{}, title ...string) error {
 	return s.sendNotification(LevelInfo, colorInfo, message, title)
 }
 
 // Warn is a wrapper function of sendNotification function that implicitly sets the logLevel and color.
-func (s *SlcLogger) Warn(message string, title ...string) error {
+func (s *SlcLogger) Warn(message interface{}, title ...string) error {
 	return s.sendNotification(LevelWarn, colorWarn, message, title)
 }
 
 // Err is a wrapper function of sendNotification function that implicitly sets the logLevel and color.
-func (s *SlcLogger) Err(message string, title ...string) error {
+func (s *SlcLogger) Err(message interface{}, title ...string) error {
 	return s.sendNotification(LevelErr, colorErr, message, title)
 }
