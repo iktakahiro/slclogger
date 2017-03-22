@@ -101,7 +101,7 @@ UseName | ""
 If you want to handle errors, use SlcErr.
 
 ```go
-if err := logger.Info("Info Message"); err != nil {
+if err := logger.Info("info message"); err != nil {
     if slcErr, ok := err.(*slclogger.SlcErr); ok {
         fmt.Println(slcErr)
         fmt.Println(slcErr.Code)

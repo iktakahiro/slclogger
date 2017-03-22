@@ -13,6 +13,7 @@ import (
 
 type logLevel int
 
+// LogLevel Constants
 const (
 	LevelDebug logLevel = iota + 1
 	LevelInfo
@@ -20,6 +21,7 @@ const (
 	LevelErr
 )
 
+// SlcErr is a struct for Slack response error code.
 type SlcErr struct {
 	Err  error
 	Code int
@@ -63,14 +65,14 @@ func isValidWebHookURL(url string) bool {
 // validateParams validates SlcLoggerParams.
 func validateParams(params *SlcLoggerParams) error {
 	if params.WebHookURL == "" {
-		return &SlcErr{errors.New("WebHookUrl is a required parameter."), 0}
+		return &SlcErr{errors.New("webHookUrl is a required parameter"), 0}
 	}
 	if !isValidWebHookURL(params.WebHookURL) {
-		return &SlcErr{errors.New("WebHookUrl must be a valid webhook url."), 0}
+		return &SlcErr{errors.New("webHookUrl must be a valid webhook url"), 0}
 	}
 
 	if params.IconURL != "" && !govalidator.IsURL(params.IconURL) {
-		return &SlcErr{errors.New("WebHookUrl must be a valid url."), 0}
+		return &SlcErr{errors.New("webHookUrl must be a valid url"), 0}
 	}
 	return nil
 }
