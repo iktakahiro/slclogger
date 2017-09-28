@@ -90,6 +90,7 @@ func NewSlcLogger(params *SlcLoggerParams) (*SlcLogger, error) {
 	} else {
 		logLevel = params.LogLevel
 	}
+
 	var defaultTitle string
 	if params.DefaultTitle == "" {
 		defaultTitle = "Notification"
@@ -147,7 +148,7 @@ func (s *SlcLogger) buildPayload(color, message string, titleParam []string) ([]
 	})
 }
 
-// sendNotification posts a message to WebHookURL.
+// sendNotification posts a message to the WebHookURL of Slack.
 func (s *SlcLogger) sendNotification(logLevel logLevel, color string, message interface{}, titleParam []string) error {
 
 	var text string

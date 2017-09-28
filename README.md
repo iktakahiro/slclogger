@@ -10,7 +10,7 @@
 go get "github.com/iktakahiro/slclogger"
 ```
 
-The requirement is the [Go lang](https://golang.org/dl/) 1.6+
+The requirement is the [Go lang](https://golang.org/dl/) 1.8+
 
 ## How to Use
 
@@ -26,7 +26,7 @@ import (
 )
 
 func something() error {
-	return errors.New("an error has occured")
+	return errors.New("an error has occurred")
 }
 
 func main() {
@@ -91,7 +91,7 @@ Param | Default Value
 ------ | ------------
 WebHookURL (*require*) | --
 DefaultTitle | "Notification"
-Channel | "" (When this param is ommited, the default channel of specified webhook is used.)
+Channel | "" (When this param is omitted, the default channel of specified WebHook is used.)
 LogLevel | Info
 IconURL | ""
 UseName | ""
