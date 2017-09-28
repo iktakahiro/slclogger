@@ -64,15 +64,15 @@ func isValidWebHookURL(url string) bool {
 
 // validateParams validates SlcLoggerParams.
 func validateParams(params *SlcLoggerParams) error {
+
 	if params.WebHookURL == "" {
-		return &SlcErr{errors.New("webHookUrl is a required parameter"), 0}
+		return &SlcErr{errors.New("WebHookURL is a required parameter"), 0}
 	}
 	if !isValidWebHookURL(params.WebHookURL) {
-		return &SlcErr{errors.New("webHookUrl must be a valid webhook url"), 0}
+		return &SlcErr{errors.New("WebHookURL must be a valid url"), 0}
 	}
-
 	if params.IconURL != "" && !govalidator.IsURL(params.IconURL) {
-		return &SlcErr{errors.New("webHookUrl must be a valid url"), 0}
+		return &SlcErr{errors.New("IconURL must be a valid url"), 0}
 	}
 	return nil
 }
@@ -90,6 +90,7 @@ func NewSlcLogger(params *SlcLoggerParams) (*SlcLogger, error) {
 	} else {
 		logLevel = params.LogLevel
 	}
+
 	var defaultTitle string
 	if params.DefaultTitle == "" {
 		defaultTitle = "Notification"
@@ -147,7 +148,7 @@ func (s *SlcLogger) buildPayload(color, message string, titleParam []string) ([]
 	})
 }
 
-// sendNotification posts a message to WebHookURL.
+// sendNotification posts a message to the WebHookURL of Slack.
 func (s *SlcLogger) sendNotification(logLevel logLevel, color string, message interface{}, titleParam []string) error {
 
 	var text string

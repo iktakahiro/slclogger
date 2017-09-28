@@ -1,100 +1,146 @@
 package slclogger
 
 import (
+	"bytes"
 	"encoding/json"
 	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/suite"
 )
 
-type SlcLoggerTestSuite struct {
-	suite.Suite
+func TestIsValidWebHookURL(t *testing.T) {
+	isValid := isValidWebHookURL("https://hooks.slack.com/services/T")
+	if !isValid {
+		t.Errorf("isValid should be '%v' actual: %v", true, isValid)
+	}
+
+	isValid = isValidWebHookURL("invalid.slack.com/services/T")
+	if isValid {
+		t.Errorf("isValid should be '%v' actual: %v", false, isValid)
+	}
+
+	isValid = isValidWebHookURL("https://hooks.slack.com/services/T invalid")
+	if isValid {
+		t.Errorf("isValid should be '%v' actual: %v", false, isValid)
+	}
 }
 
-func (suite *SlcLoggerTestSuite) SetupTest() {
-	return
-}
-
-func (suite *SlcLoggerTestSuite) TestIsValidWebHookURL() {
-
-	assert.True(suite.T(), isValidWebHookURL("https://hooks.slack.com/services/T"))
-	assert.False(suite.T(), isValidWebHookURL("invaild.slack.com/services/T"))
-	assert.False(suite.T(), isValidWebHookURL("https://hooks.slack.com/services/T invalid"))
-}
-
-func (suite *SlcLoggerTestSuite) TestNewSlcLogger() {
+func TestNewSlcLogger(t *testing.T) {
 
 	logger, err := NewSlcLogger(&SlcLoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T",
 	})
 
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), "https://hooks.slack.com/services/T", logger.WebHookURL)
-	assert.Equal(suite.T(), "Notification", logger.DefaultTitle)
-	assert.Equal(suite.T(), LevelInfo, logger.LogLevel)
+	if err != nil {
+		t.Errorf("err should be 'nil' actual: %v", err.Error())
+	}
+	var expectedURL = "https://hooks.slack.com/services/T"
+	if logger.WebHookURL != expectedURL {
+		t.Errorf("WebHookURL should be %v actual: %v", expectedURL, logger.WebHookURL)
+	}
+	var expectedTitle = "Notification"
+	if logger.DefaultTitle != expectedTitle {
+		t.Errorf("DefaultTitle should be %v actual: %v", expectedTitle, logger.DefaultTitle)
+	}
+	if logger.LogLevel != LevelInfo {
+		t.Errorf("LogLevel should be %v actual: %v", LevelInfo, logger.LogLevel)
+	}
 }
 
-func (suite *SlcLoggerTestSuite) TestNewSlcLoggerFullOptions() {
+func TestNewSlcLoggerFullOptions(t *testing.T) {
 
 	logger, err := NewSlcLogger(&SlcLoggerParams{
 		WebHookURL:   "https://hooks.slack.com/services/T",
-		DefaultTitle: "Default Title",
+		DefaultTitle: "Custom Title",
 		Channel:      "general",
 		LogLevel:     LevelWarn,
 		IconURL:      "https://example.com",
 		UserName:     "My Logger",
 	})
 
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), "https://hooks.slack.com/services/T", logger.WebHookURL)
-	assert.Equal(suite.T(), "general", logger.Channel)
-	assert.Equal(suite.T(), "Default Title", logger.DefaultTitle)
-	assert.Equal(suite.T(), LevelWarn, logger.LogLevel)
-	assert.Equal(suite.T(), "https://example.com", logger.IconURL)
-	assert.Equal(suite.T(), "My Logger", logger.UserName)
+	if err != nil {
+		t.Errorf("err should be 'nil' actual: %v", err.Error())
+	}
+	var expectedURL = "https://hooks.slack.com/services/T"
+	if logger.WebHookURL != expectedURL {
+		t.Errorf("WebHookURL should be %v actual: %v", expectedURL, logger.WebHookURL)
+	}
+	var expectedTitle = "Custom Title"
+	if logger.DefaultTitle != expectedTitle {
+		t.Errorf("DefaultTitle should be %v actual: %v", expectedTitle, logger.DefaultTitle)
+	}
+	var expectedChannel = "general"
+	if logger.Channel != expectedChannel {
+		t.Errorf("Channel should be %v actual: %v", expectedChannel, logger.Channel)
+	}
+	if logger.LogLevel != LevelWarn {
+		t.Errorf("LogLevel should be %v actual: %v", LevelWarn, logger.LogLevel)
+	}
+	var expectedIconURL = "https://example.com"
+	if logger.IconURL != expectedIconURL {
+		t.Errorf("IconURL should be %v actual: %v", expectedIconURL, logger.IconURL)
+	}
+	var expectedUserName = "My Logger"
+	if logger.UserName != expectedUserName {
+		t.Errorf("UserName should be %v actual: %v", expectedUserName, logger.UserName)
+	}
 }
 
-func (suite *SlcLoggerTestSuite) TestValidateParams() {
+func TestValidateParams(t *testing.T) {
 
 	err := validateParams(&SlcLoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T/valid",
 		IconURL:    "https://example.com/vaild",
 	})
-	assert.Nil(suite.T(), err)
+	if err != nil {
+		t.Errorf("err should be 'nil' actual: %v", err.Error())
+	}
 
 	err1 := validateParams(&SlcLoggerParams{})
-	assert.NotNil(suite.T(), err1)
 
-	err2 := validateParams(&SlcLoggerParams{
-		WebHookURL: "invaildUrl",
+	expectedErrMessage := "WebHookURL is a required parameter"
+	if err1.Error() != expectedErrMessage {
+		t.Errorf("error message should be '%v' actual: %v", expectedErrMessage, err1.Error())
+	}
+
+	invalidURLErr := validateParams(&SlcLoggerParams{
+		WebHookURL: "invalidUrl",
 	})
-	assert.NotNil(suite.T(), err2)
 
-	err3 := validateParams(&SlcLoggerParams{
-		WebHookURL: "https://example.com/invalidUrl/",
+	expectedErrMessage = "WebHookURL must be a valid url"
+	if invalidURLErr.Error() != expectedErrMessage {
+		t.Errorf("error message should be '%v' actual: %v", expectedErrMessage, invalidURLErr.Error())
+	}
+
+	invalidDomainErr := validateParams(&SlcLoggerParams{
+		WebHookURL: "invalidUrl",
 	})
-	assert.NotNil(suite.T(), err3)
+	if invalidDomainErr.Error() != expectedErrMessage {
+		t.Errorf("error message should be '%v' actual: %v", expectedErrMessage, invalidDomainErr.Error())
+	}
 
-	err4 := validateParams(&SlcLoggerParams{
+	invalidIconURLErr := validateParams(&SlcLoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T/valid",
 		IconURL:    "invalid",
 	})
-	assert.NotNil(suite.T(), err4)
+	expectedErrMessage = "IconURL must be a valid url"
+	if invalidIconURLErr.Error() != expectedErrMessage {
+		t.Errorf("error message should be '%v' actual: %v", expectedErrMessage, invalidIconURLErr.Error())
+	}
 }
 
-func (suite *SlcLoggerTestSuite) TestSetLogLevel() {
+func TestSetLogLevel(t *testing.T) {
 
 	logger, _ := NewSlcLogger(&SlcLoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T",
 	})
-	logger.SetLogLevel(LevelWarn)
 
-	assert.Equal(suite.T(), LevelWarn, logger.LogLevel)
+	logger.SetLogLevel(LevelErr)
+
+	if logger.LogLevel != LevelErr {
+		t.Errorf("LogLevel should be %v actual: %v", LevelErr, logger.LogLevel)
+	}
 }
 
-func (suite *SlcLoggerTestSuite) TestBuildPayload() {
+func TestBuildPayload(t *testing.T) {
 
 	logger, _ := NewSlcLogger(&SlcLoggerParams{
 		DefaultTitle: "title",
@@ -104,44 +150,17 @@ func (suite *SlcLoggerTestSuite) TestBuildPayload() {
 	a := &attachment{Text: "body", Title: "title", Color: "good"}
 	attachments := []attachment{*a}
 
-	expected, err := json.Marshal(payload{
+	expected, _ := json.Marshal(payload{
 		Attachments: attachments,
 	})
 
-	actual, _ := logger.buildPayload("good", "body", []string{"title"})
+	actual, err := logger.buildPayload("good", "body", []string{"title"})
 
-	assert.Nil(suite.T(), err)
-	assert.Equal(suite.T(), expected, actual)
-}
+	if err != nil {
+		t.Errorf("err should be 'nil' actual: %v", err.Error())
+	}
 
-type MyMockedObject struct {
-	mock.Mock
-}
-
-func (m *MyMockedObject) DummySendNotification() error {
-	return nil
-}
-
-func (suite *SlcLoggerTestSuite) TestSendNotification() {
-
-	// TODO
-	// logger, _ := NewSlcLogger(&SlcLoggerParams{
-	//	WebHookURL: "https://hooks.slack.com/services/T",
-	//})
-
-	// err := logger.sendNotification(LevelErr, "warning", "message", []string{"title"})
-}
-
-func (suite *SlcLoggerTestSuite) TestInfo() {
-
-	// TODO
-	// logger, _ := NewSlcLogger(&SlcLoggerParams{
-	//	WebHookURL: "https://hooks.slack.com/services/T",
-	//})
-
-	// err := logger.Info("message", "title")
-}
-
-func TestModelRecipientTestSuite(t *testing.T) {
-	suite.Run(t, new(SlcLoggerTestSuite))
+	if !bytes.Equal(actual, expected) {
+		t.Errorf("built payload should be %v equall actual: %v", expected, actual)
+	}
 }
