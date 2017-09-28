@@ -64,15 +64,15 @@ func isValidWebHookURL(url string) bool {
 
 // validateParams validates SlcLoggerParams.
 func validateParams(params *SlcLoggerParams) error {
+
 	if params.WebHookURL == "" {
-		return &SlcErr{errors.New("webHookUrl is a required parameter"), 0}
+		return &SlcErr{errors.New("WebHookURL is a required parameter"), 0}
 	}
 	if !isValidWebHookURL(params.WebHookURL) {
-		return &SlcErr{errors.New("webHookUrl must be a valid webhook url"), 0}
+		return &SlcErr{errors.New("WebHookURL must be a valid url"), 0}
 	}
-
 	if params.IconURL != "" && !govalidator.IsURL(params.IconURL) {
-		return &SlcErr{errors.New("webHookUrl must be a valid url"), 0}
+		return &SlcErr{errors.New("IconURL must be a valid url"), 0}
 	}
 	return nil
 }

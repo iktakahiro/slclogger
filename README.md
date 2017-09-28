@@ -109,6 +109,12 @@ if err := logger.Info("info message"); err != nil {
 }
 ```
 
+## Test
+
+```bash
+go test $(go list ./... | grep -v /vendor/ | grep -vE "github.com/iktakahiro/slclogger$");
+```
+
 ## Documents
 
 - [slclogger \- GoDoc](https://godoc.org/github.com/iktakahiro/slclogger)
