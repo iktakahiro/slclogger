@@ -1,8 +1,0 @@
-hash: 2baa6904a368bba631de7dabcf8085308d49575abc9bdd03ca5e49fa62078d22
-updated: 2017-09-28T18:27:14.832341996+09:00
-imports:
-- name: github.com/asaskevich/govalidator
-  version: 7b3beb6df3c42abd3509abfc3bcacc0fbfb7c877
-- name: github.com/stretchr/testify
-  version: 69483b4bd14f5845b5a1e55bca19e954e827f1d0
-testImports: []

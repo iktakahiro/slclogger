@@ -10,8 +10,6 @@
 go get "github.com/iktakahiro/slclogger"
 ```
 
-The requirement is the [Go lang](https://golang.org/dl/) 1.8+
-
 ## How to Use
 
 ### Basic Usage
