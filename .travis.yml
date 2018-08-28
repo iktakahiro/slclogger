@@ -1,8 +1,10 @@
 language: go
 go:
-  - 1.11
-  - master
+- 1.11
+- master
+env:
+- GO111MODULE=on
 script:
-  - go test -v ./...
+- go test -v ./...
 notifications:
   email: true
