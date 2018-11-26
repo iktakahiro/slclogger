@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/iktakahiro/slclogger.svg?branch=master)](https://travis-ci.org/iktakahiro/slclogger)
 
-**Simple and Human Friendly Slack Client for Logging Written in Go Programming Language**
+**Simple and Human Friendly Slack Client for Logging/Notification written in Go**
 
 ## Install
 
@@ -29,12 +29,12 @@ func something() error {
 
 func main() {
 
-	logger, _ := slclogger.NewSlcLogger(&slclogger.SlcLoggerParams{
+	logger, _ := slclogger.NewSlcLogger(&slclogger.LoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/YOUR_WEBHOOK_URL",
 	})
 
 	if err := something(); err != nil {
-		logger.Err(err, "Error Notification")
+		logger.Error(err, "Error Notification")
 	}
 }
 ```
@@ -48,15 +48,23 @@ When you execute the above sample code, your Slack channel will receive the mess
 The default log level is *Info*. You can set it when initializing a SlcLogger struct.
 
 ```go
-logger, _ := slclogger.NewSlcLogger(&slclogger.SlcLoggerParams{
-    WebHookURL: "https://hooks.slack.com/services/YOUR_WEBHOOK_URL",
-    LogLevel: slclogger.LevelDebug,
-})
+package main
 
-logger.Debug("Debug Message")
-logger.Info("Info Message")
-logger.Warn("Warn Message")
-logger.Err("Error Message")
+import (
+	"github.com/iktakahiro/slclogger"
+)
+
+func main() {
+    logger, _ := slclogger.NewSlcLogger(&slclogger.LoggerParams{
+        WebHookURL: "https://hooks.slack.com/services/YOUR_WEBHOOK_URL",
+        LogLevel: slclogger.LevelDebug,
+    })
+
+    logger.Debug("Debug Message")
+    logger.Info("Info Message")
+    logger.Warn("Warn Message")
+    logger.Error("Error Message")
+}
 ```
 
 ![](./example/example-slack2.png)
@@ -64,10 +72,22 @@ logger.Err("Error Message")
 You can also change the level at any time.
 
 ```go
-logger.SetLogLevel(slclogger.LevelWarn)
+package main
 
-// The following notification is ignored.
-logger.Debug("Debug Message")
+import (
+	"github.com/iktakahiro/slclogger"
+)
+
+func main() {
+	logger, _ := slclogger.NewSlcLogger(&slclogger.LoggerParams{
+		WebHookURL: "https://hooks.slack.com/services/YOUR_WEBHOOK_URL",
+	})
+
+    logger.SetLogLevel(slclogger.LevelWarn)
+
+    // The following notification will be ignored.
+    logger.Debug("Debug Message")
+}
 ```
 
 ### Configure Options
@@ -75,21 +95,38 @@ logger.Debug("Debug Message")
 All options are shown below.
 
 ```go
-logger, err := NewSlcLogger(&SlcLoggerParams{
-    WebHookURL:   "https://hooks.slack.com/services/YOUR_WEBHOOK_URL",
-    DefaultTitle: "Default Title",
-    Channel:      "general",
-    LogLevel:     LevelWarn,
-    IconURL:      "https://example.com",
-    UserName:     "My Logger",
-})
+package main
+
+import (
+	"github.com/iktakahiro/slclogger"
+)
+
+func main() {
+
+    logger, err := slclogger.NewSlcLogger(&slclogger.LoggerParams{
+        WebHookURL:         "https://hooks.slack.com/services/YOUR_WEBHOOK_URL",
+        DefaultTitle:       "Default Title",
+        DefaultChannel:     "general",
+        DebugChannel:       "debug-channel",
+        InfoChannel:        "info-channel",
+        WarnChannel :       "warn-channel",
+        ErrorChannel :      "error-channel",
+        LogLevel:           slclogger.LevelWarn,
+        IconURL:            "https://example.com",
+        UserName:           "My Logger",
+    })
+}
 ```
 
 Param | Default Value
 ------ | ------------
 WebHookURL (*require*) | --
 DefaultTitle | "Notification"
-Channel | "" (When this param is omitted, the default channel of specified WebHook is used.)
+DefaultChannel | "" (When this param is omitted, the default channel of specified WebHook is used.)
+DebugChannel | "" (When this param is omitted, the value of DefaultChannel is used.)
+InfoChannel | "" (When this param is omitted,  the value of DefaultChannel is used.)
+WarnChannel | "" (When this param is omitted,  the value of DefaultChannel  is used.)
+ErrorChannel | "" (When this param is omitted, the value of DefaultChannel  is used.)
 LogLevel | Info
 IconURL | ""
 UseName | ""
@@ -110,7 +147,7 @@ if err := logger.Info("info message"); err != nil {
 ## Test
 
 ```bash
-go test $(go list ./... | grep -v /vendor/ | grep -vE "github.com/iktakahiro/slclogger$");
+make test
 ```
 
 ## Documents
