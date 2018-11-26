@@ -18,7 +18,7 @@ const (
 	LevelDebug logLevel = iota + 1
 	LevelInfo
 	LevelWarn
-	LevelErr
+	LevelError
 )
 
 // SlcErr is a struct for Slack response error code.
@@ -35,35 +35,41 @@ func (s *SlcErr) Error() string {
 // SlcLogger is the structure detailing logger.
 type SlcLogger struct {
 	WebHookURL string
-	SlcLoggerParams
+	LoggerParams
 	LogLevel     logLevel
-	Channel      string
+	DebugChannel string
+	InfoChannel  string
+	WarnChannel  string
+	ErrorChannel string
 	UserName     string
 	DefaultTitle string
 	IconURL      string
 }
 
-// SlcLoggerParams is the set of parameters that can be used when creating a new SlcLogger.
-type SlcLoggerParams struct {
-	WebHookURL   string
-	LogLevel     logLevel
-	Channel      string
-	UserName     string
-	DefaultTitle string
-	IconURL      string
+// LoggerParams is the set of parameters that can be used when creating a new SlcLogger.
+type LoggerParams struct {
+	WebHookURL     string
+	LogLevel       logLevel
+	DefaultChannel string
+	DebugChannel   string
+	InfoChannel    string
+	WarnChannel    string
+	ErrorChannel   string
+	UserName       string
+	DefaultTitle   string
+	IconURL        string
 }
 
 // isValidWebHookURL validates whether the value is valid as a URL and returns bool.
 func isValidWebHookURL(url string) bool {
-
 	if !govalidator.IsURL(url) {
 		return false
 	}
 	return strings.HasPrefix(url, "https://hooks.slack.com/services/")
 }
 
-// validateParams validates SlcLoggerParams.
-func validateParams(params *SlcLoggerParams) error {
+// validateParams validates LoggerParams.
+func validateParams(params *LoggerParams) error {
 
 	if params.WebHookURL == "" {
 		return &SlcErr{errors.New("WebHookURL is a required parameter"), 0}
@@ -78,17 +84,17 @@ func validateParams(params *SlcLoggerParams) error {
 }
 
 // NewSlcLogger returns a new SLcLogger.
-func NewSlcLogger(params *SlcLoggerParams) (*SlcLogger, error) {
+func NewSlcLogger(params *LoggerParams) (*SlcLogger, error) {
 
 	if err := validateParams(params); err != nil {
 		return nil, err
 	}
 
-	var logLevel logLevel
+	var level logLevel
 	if params.LogLevel == 0 {
-		logLevel = LevelInfo
+		level = LevelInfo
 	} else {
-		logLevel = params.LogLevel
+		level = params.LogLevel
 	}
 
 	var defaultTitle string
@@ -97,11 +103,31 @@ func NewSlcLogger(params *SlcLoggerParams) (*SlcLogger, error) {
 	} else {
 		defaultTitle = params.DefaultTitle
 	}
+	debugChannel := params.DebugChannel
+	infoChannel := params.InfoChannel
+	warnChannel := params.WarnChannel
+	errorChannel := params.ErrorChannel
+
+	if debugChannel == "" {
+		debugChannel = params.DefaultChannel
+	}
+	if infoChannel == "" {
+		infoChannel = params.DefaultChannel
+	}
+	if warnChannel == "" {
+		warnChannel = params.DefaultChannel
+	}
+	if errorChannel == "" {
+		errorChannel = params.DefaultChannel
+	}
 
 	return &SlcLogger{
 		WebHookURL:   params.WebHookURL,
-		LogLevel:     logLevel,
-		Channel:      params.Channel,
+		LogLevel:     level,
+		DebugChannel: debugChannel,
+		InfoChannel:  infoChannel,
+		WarnChannel:  warnChannel,
+		ErrorChannel: errorChannel,
 		DefaultTitle: defaultTitle,
 		UserName:     params.UserName,
 		IconURL:      params.IconURL,
@@ -128,7 +154,7 @@ type attachment struct {
 }
 
 // buildPayload returns an encoded JSON Object to post Slack API.
-func (s *SlcLogger) buildPayload(color, message string, titleParam []string) ([]byte, error) {
+func (s *SlcLogger) buildPayload(slackChannel, color, message string, titleParam []string) ([]byte, error) {
 
 	var title string
 	if len(titleParam) == 0 {
@@ -141,11 +167,25 @@ func (s *SlcLogger) buildPayload(color, message string, titleParam []string) ([]
 	attachments := []attachment{*a}
 
 	return json.Marshal(payload{
-		Channel:     s.Channel,
+		Channel:     slackChannel,
 		UserName:    s.UserName,
 		IconURL:     s.IconURL,
 		Attachments: attachments,
 	})
+}
+
+func (s *SlcLogger) getTargetChannel(logLevel logLevel) string {
+	switch logLevel {
+	case 1:
+		return s.DebugChannel
+	case 2:
+		return s.InfoChannel
+	case 3:
+		return s.WarnChannel
+	case 4:
+		return s.ErrorChannel
+	}
+	return s.DefaultChannel
 }
 
 // sendNotification posts a message to the WebHookURL of Slack.
@@ -157,14 +197,15 @@ func (s *SlcLogger) sendNotification(logLevel logLevel, color string, message in
 	} else if t, ok := message.(string); ok {
 		text = t
 	} else {
-		return &SlcErr{errors.New("the type of message parameter shoud be string or errror"), 0}
+		return &SlcErr{errors.New("the type of message parameter should be string or error"), 0}
 	}
 
 	if logLevel < s.LogLevel {
 		return nil
 	}
+	slackChannel := s.getTargetChannel(logLevel)
 
-	payload, err := s.buildPayload(color, text, titleParam)
+	payload, err := s.buildPayload(slackChannel, color, text, titleParam)
 	if err != nil {
 		return &SlcErr{err, 0}
 	}
@@ -204,7 +245,7 @@ func (s *SlcLogger) Warn(message interface{}, title ...string) error {
 	return s.sendNotification(LevelWarn, colorWarn, message, title)
 }
 
-// Err is a wrapper function of sendNotification function that implicitly sets the logLevel and color.
-func (s *SlcLogger) Err(message interface{}, title ...string) error {
-	return s.sendNotification(LevelErr, colorErr, message, title)
+// Error is a wrapper function of sendNotification function that implicitly sets the logLevel and color.
+func (s *SlcLogger) Error(message interface{}, title ...string) error {
+	return s.sendNotification(LevelError, colorErr, message, title)
 }

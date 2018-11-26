@@ -1,92 +1,69 @@
 package slclogger
 
 import (
-	"bytes"
 	"encoding/json"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIsValidWebHookURL(t *testing.T) {
-	isValid := isValidWebHookURL("https://hooks.slack.com/services/T")
-	if !isValid {
-		t.Errorf("isValid should be '%v' actual: %v", true, isValid)
-	}
 
-	isValid = isValidWebHookURL("invalid.slack.com/services/T")
-	if isValid {
-		t.Errorf("isValid should be '%v' actual: %v", false, isValid)
-	}
+	assert.True(t, isValidWebHookURL("https://hooks.slack.com/services/T"))
 
-	isValid = isValidWebHookURL("https://hooks.slack.com/services/T invalid")
-	if isValid {
-		t.Errorf("isValid should be '%v' actual: %v", false, isValid)
-	}
+	assert.False(t, isValidWebHookURL("invalid.slack.com/services/T"))
+
 }
 
 func TestNewSlcLogger(t *testing.T) {
 
-	logger, err := NewSlcLogger(&SlcLoggerParams{
+	logger, err := NewSlcLogger(&LoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T",
 	})
+	assert.Nil(t, err)
 
-	if err != nil {
-		t.Errorf("err should be 'nil' actual: %v", err.Error())
-	}
-	var expectedURL = "https://hooks.slack.com/services/T"
-	if logger.WebHookURL != expectedURL {
-		t.Errorf("WebHookURL should be %v actual: %v", expectedURL, logger.WebHookURL)
-	}
-	var expectedTitle = "Notification"
-	if logger.DefaultTitle != expectedTitle {
-		t.Errorf("DefaultTitle should be %v actual: %v", expectedTitle, logger.DefaultTitle)
-	}
-	if logger.LogLevel != LevelInfo {
-		t.Errorf("LogLevel should be %v actual: %v", LevelInfo, logger.LogLevel)
-	}
+	assert.Equal(t, "https://hooks.slack.com/services/T", logger.WebHookURL)
+
+	assert.Equal(t, "Notification", logger.DefaultTitle)
+
+	assert.Equal(t, LevelInfo, logger.LogLevel)
+
 }
 
 func TestNewSlcLoggerFullOptions(t *testing.T) {
 
-	logger, err := NewSlcLogger(&SlcLoggerParams{
-		WebHookURL:   "https://hooks.slack.com/services/T",
-		DefaultTitle: "Custom Title",
-		Channel:      "general",
-		LogLevel:     LevelWarn,
-		IconURL:      "https://example.com",
-		UserName:     "My Logger",
+	logger, err := NewSlcLogger(&LoggerParams{
+		WebHookURL:     "https://hooks.slack.com/services/T",
+		DefaultTitle:   "Custom Title",
+		DefaultChannel: "general",
+		WarnChannel:    "warn-channel",
+		ErrorChannel:   "error-channel",
+		LogLevel:       LevelWarn,
+		IconURL:        "https://example.com/icon.png",
+		UserName:       "My Logger",
 	})
 
-	if err != nil {
-		t.Errorf("err should be 'nil' actual: %v", err.Error())
-	}
-	var expectedURL = "https://hooks.slack.com/services/T"
-	if logger.WebHookURL != expectedURL {
-		t.Errorf("WebHookURL should be %v actual: %v", expectedURL, logger.WebHookURL)
-	}
-	var expectedTitle = "Custom Title"
-	if logger.DefaultTitle != expectedTitle {
-		t.Errorf("DefaultTitle should be %v actual: %v", expectedTitle, logger.DefaultTitle)
-	}
-	var expectedChannel = "general"
-	if logger.Channel != expectedChannel {
-		t.Errorf("Channel should be %v actual: %v", expectedChannel, logger.Channel)
-	}
-	if logger.LogLevel != LevelWarn {
-		t.Errorf("LogLevel should be %v actual: %v", LevelWarn, logger.LogLevel)
-	}
-	var expectedIconURL = "https://example.com"
-	if logger.IconURL != expectedIconURL {
-		t.Errorf("IconURL should be %v actual: %v", expectedIconURL, logger.IconURL)
-	}
-	var expectedUserName = "My Logger"
-	if logger.UserName != expectedUserName {
-		t.Errorf("UserName should be %v actual: %v", expectedUserName, logger.UserName)
-	}
+	assert.Nil(t, err)
+
+	assert.Equal(t, "https://hooks.slack.com/services/T", logger.WebHookURL)
+
+	assert.Equal(t, "Custom Title", logger.DefaultTitle)
+
+	assert.Equal(t, "general", logger.DebugChannel)
+	assert.Equal(t, "general", logger.InfoChannel)
+	assert.Equal(t, "warn-channel", logger.WarnChannel)
+	assert.Equal(t, "error-channel", logger.ErrorChannel)
+
+	assert.Equal(t, LevelWarn, logger.LogLevel)
+
+	assert.Equal(t, "https://example.com/icon.png", logger.IconURL)
+
+	assert.Equal(t, "My Logger", logger.UserName)
 }
 
 func TestValidateParams(t *testing.T) {
 
-	err := validateParams(&SlcLoggerParams{
+	err := validateParams(&LoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T/valid",
 		IconURL:    "https://example.com/vaild",
 	})
@@ -94,14 +71,14 @@ func TestValidateParams(t *testing.T) {
 		t.Errorf("err should be 'nil' actual: %v", err.Error())
 	}
 
-	err1 := validateParams(&SlcLoggerParams{})
+	err1 := validateParams(&LoggerParams{})
 
 	expectedErrMessage := "WebHookURL is a required parameter"
 	if err1.Error() != expectedErrMessage {
 		t.Errorf("error message should be '%v' actual: %v", expectedErrMessage, err1.Error())
 	}
 
-	invalidURLErr := validateParams(&SlcLoggerParams{
+	invalidURLErr := validateParams(&LoggerParams{
 		WebHookURL: "invalidUrl",
 	})
 
@@ -110,14 +87,14 @@ func TestValidateParams(t *testing.T) {
 		t.Errorf("error message should be '%v' actual: %v", expectedErrMessage, invalidURLErr.Error())
 	}
 
-	invalidDomainErr := validateParams(&SlcLoggerParams{
+	invalidDomainErr := validateParams(&LoggerParams{
 		WebHookURL: "invalidUrl",
 	})
 	if invalidDomainErr.Error() != expectedErrMessage {
 		t.Errorf("error message should be '%v' actual: %v", expectedErrMessage, invalidDomainErr.Error())
 	}
 
-	invalidIconURLErr := validateParams(&SlcLoggerParams{
+	invalidIconURLErr := validateParams(&LoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T/valid",
 		IconURL:    "invalid",
 	})
@@ -129,20 +106,22 @@ func TestValidateParams(t *testing.T) {
 
 func TestSetLogLevel(t *testing.T) {
 
-	logger, _ := NewSlcLogger(&SlcLoggerParams{
+	logger, _ := NewSlcLogger(&LoggerParams{
 		WebHookURL: "https://hooks.slack.com/services/T",
 	})
 
-	logger.SetLogLevel(LevelErr)
+	// before
+	assert.Equal(t, LevelInfo, logger.LogLevel)
 
-	if logger.LogLevel != LevelErr {
-		t.Errorf("LogLevel should be %v actual: %v", LevelErr, logger.LogLevel)
-	}
+	logger.SetLogLevel(LevelError)
+
+	// after
+	assert.Equal(t, LevelError, logger.LogLevel)
 }
 
 func TestBuildPayload(t *testing.T) {
 
-	logger, _ := NewSlcLogger(&SlcLoggerParams{
+	logger, _ := NewSlcLogger(&LoggerParams{
 		DefaultTitle: "title",
 		WebHookURL:   "https://hooks.slack.com/services/T",
 	})
@@ -151,16 +130,13 @@ func TestBuildPayload(t *testing.T) {
 	attachments := []attachment{*a}
 
 	expected, _ := json.Marshal(payload{
+		Channel:     "random",
 		Attachments: attachments,
 	})
 
-	actual, err := logger.buildPayload("good", "body", []string{"title"})
+	actual, err := logger.buildPayload("random", "good", "body", []string{"title"})
 
-	if err != nil {
-		t.Errorf("err should be 'nil' actual: %v", err.Error())
-	}
+	assert.Nil(t, err)
 
-	if !bytes.Equal(actual, expected) {
-		t.Errorf("built payload should be %v equall actual: %v", expected, actual)
-	}
+	assert.Equal(t, expected, actual)
 }
