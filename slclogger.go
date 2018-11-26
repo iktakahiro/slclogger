@@ -2,6 +2,7 @@ package slclogger
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"io/ioutil"
@@ -210,13 +211,24 @@ func (s *SlcLogger) sendNotification(logLevel logLevel, color string, message in
 		return &SlcErr{err, 0}
 	}
 
-	resp, err := http.Post(s.WebHookURL, "application/json", bytes.NewBuffer(payload))
+	req, err := http.NewRequest("POST", s.WebHookURL, bytes.NewBuffer(payload))
+	req.Header.Set("Content-Type", "application/json")
+
 	if err != nil {
 		return &SlcErr{err, 0}
 	}
+	ctx := context.Background()
+	req.WithContext(ctx)
+
+	resp, err := http.DefaultClient.Do(req)
+	defer resp.Body.Close()
+
+	if err != nil {
+		return &SlcErr{err, 0}
+	}
+
 	if resp.StatusCode >= 400 {
 		body, _ := ioutil.ReadAll(resp.Body)
-		defer resp.Body.Close()
 		return &SlcErr{errors.New(string(body)), resp.StatusCode}
 	}
 
