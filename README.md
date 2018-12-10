@@ -7,7 +7,7 @@
 ## Install
 
 ```bash
-go get "github.com/iktakahiro/slclogger"
+go get "github.com/iktakahiro/slclogger/v2"
 ```
 
 ## How to Use
@@ -20,7 +20,7 @@ package main
 import (
 	"errors"
 
-	"github.com/iktakahiro/slclogger"
+	"github.com/iktakahiro/slclogger/v2"
 )
 
 func something() error {
@@ -51,7 +51,7 @@ The default log level is *Info*. You can set it when initializing a SlcLogger st
 package main
 
 import (
-	"github.com/iktakahiro/slclogger"
+	"github.com/iktakahiro/slclogger/v2"
 )
 
 func main() {
@@ -75,7 +75,7 @@ You can also change the level at any time.
 package main
 
 import (
-	"github.com/iktakahiro/slclogger"
+	"github.com/iktakahiro/slclogger/v2"
 )
 
 func main() {
@@ -98,7 +98,7 @@ All options are shown below.
 package main
 
 import (
-	"github.com/iktakahiro/slclogger"
+	"github.com/iktakahiro/slclogger/v2"
 )
 
 func main() {
