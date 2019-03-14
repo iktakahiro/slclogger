@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -175,18 +176,22 @@ func (s *SlcLogger) buildPayload(slackChannel, color, message string, titleParam
 	})
 }
 
-func (s *SlcLogger) getTargetChannel(logLevel logLevel) string {
+func (s *SlcLogger) getTargetChannel(logLevel logLevel) (channel string) {
 	switch logLevel {
 	case 1:
-		return s.DebugChannel
+		channel = s.DebugChannel
 	case 2:
-		return s.InfoChannel
+		channel = s.InfoChannel
 	case 3:
-		return s.WarnChannel
+		channel = s.WarnChannel
 	case 4:
-		return s.ErrorChannel
+		channel = s.ErrorChannel
 	}
-	return s.DefaultChannel
+	if channel == "" {
+		channel = s.DefaultChannel
+	}
+
+	return
 }
 
 // sendNotification posts a message to the WebHookURL of Slack.
@@ -221,7 +226,13 @@ func (s *SlcLogger) sendNotification(logLevel logLevel, color string, message in
 	req.WithContext(ctx)
 
 	resp, err := http.DefaultClient.Do(req)
-	defer resp.Body.Close()
+
+	defer func() {
+		if resp != nil {
+			_, _ = io.Copy(ioutil.Discard, resp.Body)
+			_ = resp.Body.Close()
+		}
+	}()
 
 	if err != nil {
 		return &SlcErr{err, 0}
